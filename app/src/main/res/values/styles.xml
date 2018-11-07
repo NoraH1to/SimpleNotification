@@ -1,0 +1,9 @@
+<resources>
+
+    <!-- Base application theme. -->
+    <style name="AppTheme" parent="Theme.MaterialComponents.Light.Dialog.Alert">
+        <item name="windowNoTitle">true</item>
+        <!-- Customize your theme here. -->
+    </style>
+
+</resources>

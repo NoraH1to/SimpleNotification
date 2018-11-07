@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">提醒一下</string>
+    <string name="notice_title">标题</string>
+    <string name="notice_context">内容</string>
+    <string name="confirm">确认</string>
+    <string name="reflash">恢复</string>
+    <string name="delete">删除</string>
+</resources>
