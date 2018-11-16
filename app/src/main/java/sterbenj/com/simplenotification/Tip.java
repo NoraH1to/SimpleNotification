@@ -14,6 +14,24 @@ public class Tip extends LitePalSupport implements Serializable {
     private String Context;
     private int channel_id;
     private long Time;
+    private long TargetTime;
+    private int hasNotice;
+
+    public int getHasNotice() {
+        return hasNotice;
+    }
+
+    public void setHasNotice(int hasNotice) {
+        this.hasNotice = hasNotice;
+    }
+
+    public long getTargetTime() {
+        return TargetTime;
+    }
+
+    public void setTargetTime(long targetTime) {
+        TargetTime = targetTime;
+    }
 
     public long getTime() {
         return Time;

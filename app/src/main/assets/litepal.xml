@@ -2,7 +2,7 @@
 <litepal>
     <dbname value="Tip" ></dbname>
 
-    <version value="6" ></version>
+    <version value="8" ></version>
 
     <list>
         <mapping class="sterbenj.com.simplenotification.Tip"></mapping>

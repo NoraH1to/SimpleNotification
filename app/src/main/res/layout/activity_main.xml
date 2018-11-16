@@ -7,6 +7,36 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
+    <RelativeLayout
+        android:id="@+id/switch_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginTop="16dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/title_layout">
+        <androidx.appcompat.widget.AppCompatTextView
+            android:id="@+id/notice_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="8dp"
+            android:text="@string/notice_text"
+            android:textStyle="bold"
+            android:textSize="16sp"
+            android:layout_alignParentStart="true"
+            android:layout_centerVertical="true"/>
+        <androidx.appcompat.widget.SwitchCompat
+            android:id="@+id/notice_switch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_toEndOf="@+id/notice_text"
+            android:layout_centerVertical="true"/>
+    </RelativeLayout>
+
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/title_layout"
         android:layout_width="match_parent"
@@ -15,7 +45,8 @@
         android:layout_marginBottom="24dp"
         android:layout_marginLeft="24dp"
         android:layout_marginRight="24dp"
-        app:layout_constraintTop_toTopOf="parent"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense"
+        app:layout_constraintTop_toBottomOf="@+id/switch_layout"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintBottom_toTopOf="@+id/context_layout">
@@ -34,6 +65,7 @@
         android:layout_marginBottom="16dp"
         android:layout_marginLeft="24dp"
         android:layout_marginRight="24dp"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense"
         app:layout_constraintTop_toBottomOf="@+id/title_layout"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
@@ -50,15 +82,14 @@
         android:id="@+id/button_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        style="@style/Theme.MaterialComponents.Light.Dialog.Alert"
         app:layout_constraintTop_toBottomOf="@id/context_layout"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        android:paddingStart="16dp"
-        android:paddingEnd="16dp"
-        android:paddingTop="6dp"
-        android:paddingBottom="6dp"
+        app:layout_constraintBottom_toTopOf="@id/notice_card"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginTop="6dp"
+        android:layout_marginBottom="6dp"
         android:orientation="horizontal"
         android:gravity="end">
         <com.google.android.material.button.MaterialButton
@@ -67,37 +98,135 @@
             android:layout_height="wrap_content"
             android:layout_alignParentLeft="true"
             android:layout_marginEnd="8dp"
-            app:cornerRadius="6dp"
+            app:cornerRadius="18dp"
             style="@style/Widget.MaterialComponents.Button.TextButton.Dialog"
-            android:text="@string/delete"/>
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/reflash_button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_centerInParent="true"
-            app:cornerRadius="6dp"
-            style="@style/Widget.MaterialComponents.Button.TextButton.Dialog"
-            android:text="@string/reflash"/>
+            android:text="@string/delete"
+            android:textColor="@android:color/holo_red_light"
+            app:rippleColor="@android:color/holo_red_light"/>
         <com.google.android.material.button.MaterialButton
             android:id="@+id/confirm_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentRight="true"
-            app:cornerRadius="6dp"
+            app:cornerRadius="18dp"
             style="@style/Widget.MaterialComponents.Button.TextButton.Dialog"
             android:text="@string/confirm"/>
     </RelativeLayout>
 
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
+    <!--<com.google.android.material.floatingactionbutton.FloatingActionButton-->
+        <!--android:id="@+id/fab_newNotice"-->
+        <!--android:layout_width="wrap_content"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--style="@style/Widget.MaterialComponents.Button.Icon"-->
+        <!--app:layout_constraintTop_toTopOf="parent"-->
+        <!--app:layout_constraintRight_toRightOf="parent"-->
+        <!--app:layout_constraintLeft_toLeftOf="parent"-->
+        <!--app:layout_constraintBottom_toBottomOf="parent"-->
+        <!--app:layout_constraintVertical_bias="0.95"-->
+        <!--app:srcCompat="@drawable/ic_add_withe_24dp" />-->
+
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/fab_newNotice"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        style="@style/Widget.MaterialComponents.FloatingActionButton"
+        style="@style/Widget.MaterialComponents.Button.Icon"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/notice_card"
+        app:layout_constraintVertical_bias="0.97"
+        app:cornerRadius="18dp"
+        app:icon="@drawable/ic_add_withe_24dp"
+        android:text="@string/new_tip"/>
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/reflash_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        style="@style/Widget.MaterialComponents.Button.Icon"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/notice_card"
+        app:layout_constraintVertical_bias="0.97"
+        app:cornerRadius="18dp"
+        app:icon="@drawable/ic_refresh_withe_24dp"
+        android:text="@string/reflash"/>
+
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/notice_card"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingTop="6dp"
+        app:layout_constraintTop_toBottomOf="@id/button_layout"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintVertical_bias="0.95"
-        app:srcCompat="@drawable/ic_add_withe_24dp"/>
+        style="@style/Widget.MaterialComponents.CardView"
+        app:cardElevation="32dp"
+        android:visibility="gone">
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="8dp">
+            <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/which_day"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="8dp"
+                android:layout_alignBaseline="@+id/button_day"
+                android:text="@string/which_day"/>
+            <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/text_day"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="8dp"
+                android:layout_alignBaseline="@+id/button_day"
+                android:layout_centerHorizontal="true"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:text="@string/unsetting"/>
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/button_day"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                style="@style/Widget.MaterialComponents.Button.TextButton.Dialog"
+                android:layout_alignParentEnd="true"
+                android:text="@string/setting" />
+            <View
+                android:id="@+id/line1"
+                android:layout_width="match_parent"
+                android:layout_height="0.5dp"
+                android:layout_marginLeft="8dp"
+                android:layout_marginRight="8dp"
+                android:layout_below="@+id/button_day"
+                android:background="@android:color/darker_gray"/>
+            <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/which_hour"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="8dp"
+                android:layout_alignBaseline="@+id/button_hour"
+                android:text="@string/which_hour"/>
+            <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/text_hour"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="8dp"
+                android:layout_alignBaseline="@+id/button_hour"
+                android:layout_centerHorizontal="true"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:text="@string/unsetting"/>
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/button_hour"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                style="@style/Widget.MaterialComponents.Button.TextButton.Dialog"
+                android:layout_alignRight="@+id/button_day"
+                android:layout_below="@id/line1"
+                android:text="@string/setting" />
+        </RelativeLayout>
+    </com.google.android.material.card.MaterialCardView>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

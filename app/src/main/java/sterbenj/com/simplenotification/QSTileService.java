@@ -38,6 +38,7 @@ public class QSTileService extends TileService {
     public void onClick() {
         super.onClick();
         Intent intent = new Intent(this, MainActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         if (!isLocked()){
             startActivity(intent);
             collapseStatusBar();

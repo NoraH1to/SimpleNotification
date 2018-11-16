@@ -5,4 +5,10 @@
     <string name="confirm">确认</string>
     <string name="reflash">恢复</string>
     <string name="delete">删除</string>
+    <string name="new_tip">新建</string>
+    <string name="notice_text">提醒</string>
+    <string name="which_day">哪天</string>
+    <string name="which_hour">哪时</string>
+    <string name="setting">设置</string>
+    <string name="unsetting">未设置</string>
 </resources>
