@@ -67,21 +67,7 @@ public class MainActivity extends AppCompatActivity {
 
         //来自提醒操作
         if(getIntent().getStringExtra("ACTION_NOTICE") != null){
-            String title = getIntent().getStringExtra("Notice_title");
-            String context = getIntent().getStringExtra("Notice_context");
-            final AlertDialog dialog = new AlertDialog.Builder(this).create();
-            dialog.setCancelable(false);
-            dialog.setTitle(title);
-            dialog.setMessage(context);
-            dialog.setIcon(R.mipmap.ic_launcher_round);
-            dialog.setButton(DialogInterface.BUTTON_POSITIVE, "知道啦", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialogInterface, int i) {
-                    dialog.dismiss();
-                    finish();
-                }
-            });
-            dialog.show();
+            NoticeDialog(getIntent().getIntExtra("Tip", -1));
             return;
         }
 
@@ -92,6 +78,68 @@ public class MainActivity extends AppCompatActivity {
         initFab();
 
 
+    }
+
+    //提醒dialog
+    private void NoticeDialog(int channel_id){
+        Log.d(TAG, "NoticeDialog: " + channel_id);
+        final Tip tip_temp = LitePal.where("channel_id = ?", String.valueOf(channel_id)).find(Tip.class).get(0);
+        String title = tip_temp.getTitle();
+        String context = tip_temp.getContext();
+        AlertDialog dialog = new AlertDialog.Builder(this).create();
+        dialog.setCancelable(false);
+        dialog.setTitle(title);
+        dialog.setMessage(context);
+        dialog.setIcon(R.mipmap.ic_launcher_round);
+        dialog.setButton(DialogInterface.BUTTON_POSITIVE, "知道啦", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                dialogInterface.dismiss();
+                finish();
+            }
+        });
+        dialog.setButton(DialogInterface.BUTTON_NEUTRAL, "稍后提醒", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                AfterTimeDialog(tip_temp, dialogInterface);
+            }
+        });
+        dialog.setButton(DialogInterface.BUTTON_NEGATIVE, "删除提醒", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                deleteTip(tip_temp.getChannel_id(), tip_temp.getId());
+                dialogInterface.dismiss();
+                finish();
+            }
+        });
+        dialog.show();
+    }
+
+    //稍后提醒时间选择
+    private void AfterTimeDialog(final Tip tip, final DialogInterface dialogInterfaceOut){
+        String[] Times = new String[]{
+                "5分钟", "15分钟", "30分钟", "1小时", "2小时", "4小时"
+        };
+        final long[] TimesMills = new long[]{
+                5*60*1000, 15*60*1000, 30*60*1000, 60*60*1000, 120*60*1000, 240*60*1000
+        };
+        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+        builder.setCancelable(true).setTitle("多长时间后提醒").setSingleChoiceItems(Times, 0, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                createAfterNotice(tip, TimesMills[i]);
+                dialogInterface.dismiss();
+                dialogInterfaceOut.dismiss();
+                finish();
+            }
+        }).create().show();
+    }
+
+    //稍后提醒建立
+    private void createAfterNotice(Tip tip, long addTime){
+        tip.setTargetTime(tip.getTargetTime() + addTime);
+        tip.save();
+        createOrDeleteDNotice(tip, true);
     }
 
     //初始化数据库监听
@@ -505,8 +553,7 @@ public class MainActivity extends AppCompatActivity {
         AlarmManager alarmManager = (AlarmManager)getSystemService(Service.ALARM_SERVICE);
         Intent intent = new Intent(this, MainActivity.class);
         intent.putExtra("ACTION_NOTICE", "ACTION_NOTICE");
-        intent.putExtra("Notice_title", tip.getTitle());
-        intent.putExtra("Notice_context", tip.getContext());
+        intent.putExtra("Tip", tip.getChannel_id());
         PendingIntent pendingIntent = PendingIntent.getActivity(this,
                 tip.getChannel_id() + 2333, intent, PendingIntent.FLAG_UPDATE_CURRENT);
         if(create){
