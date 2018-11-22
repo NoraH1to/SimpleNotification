@@ -404,6 +404,8 @@ public class MainActivity extends AppCompatActivity {
         ConfirmButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                Log.d(TAG, "onClick: " + calendar.getTimeInMillis());
+                Log.d(TAG, "onClick: " + System.currentTimeMillis());
                 if (calendar.getTimeInMillis() < System.currentTimeMillis() &&
                         ((SwitchCompat)findViewById(R.id.notice_switch)).isChecked()){
                     Toast.makeText(MainActivity.this, "提醒时间不能小于当前时间", Toast.LENGTH_SHORT).show();
@@ -444,15 +446,14 @@ public class MainActivity extends AppCompatActivity {
         if (temp.getHasNotice() == 1){
             findViewById(R.id.notice_card).setVisibility(View.VISIBLE);
             ((SwitchCompat)findViewById(R.id.notice_switch)).setChecked(true);
-            Calendar tmpCalendar = Calendar.getInstance();
-            tmpCalendar.setTimeInMillis(temp.getTargetTime());
+            calendar.setTimeInMillis(temp.getTargetTime());
             dayText.setText("" +
-                    tmpCalendar.get(Calendar.YEAR) + '年' +
-                    (tmpCalendar.get(Calendar.MONTH) + 1) + '月' +
-                    tmpCalendar.get(Calendar.DAY_OF_MONTH) + '日');
+                    calendar.get(Calendar.YEAR) + '年' +
+                    (calendar.get(Calendar.MONTH) + 1) + '月' +
+                    calendar.get(Calendar.DAY_OF_MONTH) + '日');
             hourText.setText("" +
-                    tmpCalendar.get(Calendar.HOUR_OF_DAY) + '点' +
-                    tmpCalendar.get(Calendar.MINUTE) + '分');
+                    calendar.get(Calendar.HOUR_OF_DAY) + '点' +
+                    calendar.get(Calendar.MINUTE) + '分');
         }
     }
 
