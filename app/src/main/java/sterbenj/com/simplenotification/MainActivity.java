@@ -289,7 +289,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 Calendar currentTime = Calendar.getInstance();
-                new DatePickerDialog(MainActivity.this, 0, new DatePickerDialog.OnDateSetListener() {
+                DatePickerDialog datePickerDialog = new DatePickerDialog(MainActivity.this, 0, new DatePickerDialog.OnDateSetListener() {
                     @Override
                     public void onDateSet(DatePicker datePicker, int i, int i1, int i2) {
                         calendar.set(Calendar.YEAR, i);
@@ -300,7 +300,10 @@ public class MainActivity extends AppCompatActivity {
                             setNormalButtonClickable(confimButton, true);
                         }
                     }
-                }, currentTime.get(Calendar.YEAR), currentTime.get(Calendar.MONTH),  currentTime.get(Calendar.DAY_OF_MONTH)).show();
+                }, currentTime.get(Calendar.YEAR), currentTime.get(Calendar.MONTH),  currentTime.get(Calendar.DAY_OF_MONTH));
+                //设置最小日期
+                datePickerDialog.getDatePicker().setMinDate(System.currentTimeMillis());
+                datePickerDialog.show();
             }
         });
 
@@ -308,7 +311,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 Calendar currentTime = Calendar.getInstance();
-                new TimePickerDialog(MainActivity.this, 0, new TimePickerDialog.OnTimeSetListener() {
+                TimePickerDialog timePickerDialog = new TimePickerDialog(MainActivity.this, 0, new TimePickerDialog.OnTimeSetListener() {
                     @Override
                     public void onTimeSet(TimePicker timePicker, int i, int i1) {
                         calendar.set(Calendar.HOUR_OF_DAY, i);
@@ -318,7 +321,8 @@ public class MainActivity extends AppCompatActivity {
                             setNormalButtonClickable(confimButton, true);
                         }
                     }
-                }, currentTime.get(Calendar.HOUR_OF_DAY), currentTime.get(Calendar.MINUTE), false).show();
+                }, currentTime.get(Calendar.HOUR_OF_DAY), currentTime.get(Calendar.MINUTE), false);
+                timePickerDialog.show();
             }
         });
     }
@@ -393,6 +397,17 @@ public class MainActivity extends AppCompatActivity {
             String Context = intent.getStringExtra("Context");
             initText(Title, Context);
             initNoticeLayout(intent.getLongExtra("id", -1));
+        }
+        //来自分享的内容
+        else if(Intent.ACTION_SEND.equals(intent.getAction()) && intent.getType() != null){
+            ACTION = CREATE;
+            if("text/plain".equals(getIntent().getType())){
+                initText(intent.getStringExtra(Intent.EXTRA_TITLE), intent.getStringExtra(Intent.EXTRA_TEXT));
+            }
+            else{
+                Toast.makeText(this, "不支持的分享类型", Toast.LENGTH_SHORT).show();
+                finish();
+            }
         }
         //直接打开app
         else{
@@ -494,6 +509,7 @@ public class MainActivity extends AppCompatActivity {
             createOrDeleteDNotice(tip, true);
         }else{
             tip.setHasNotice(2);
+            createOrDeleteDNotice(tip, false);
         }
         tip.save();
 
@@ -531,6 +547,7 @@ public class MainActivity extends AppCompatActivity {
             createOrDeleteDNotice(tip, true);
         }else{
             tip.setHasNotice(2);
+            createOrDeleteDNotice(tip, false);
         }
         tip.updateAll("id = ?", String.valueOf(tip.getId()));
 
