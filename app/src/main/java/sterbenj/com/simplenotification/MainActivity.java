@@ -8,7 +8,6 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.app.TimePickerDialog;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
@@ -27,7 +26,6 @@ import com.google.android.material.textfield.TextInputEditText;
 
 import org.litepal.LitePal;
 import org.litepal.tablemanager.callback.DatabaseListener;
-import org.w3c.dom.Text;
 
 import java.util.Calendar;
 import java.util.List;
@@ -303,6 +301,8 @@ public class MainActivity extends AppCompatActivity {
                 }, currentTime.get(Calendar.YEAR), currentTime.get(Calendar.MONTH),  currentTime.get(Calendar.DAY_OF_MONTH));
                 //设置最小日期
                 datePickerDialog.getDatePicker().setMinDate(System.currentTimeMillis());
+                //不设置会显示双行标题
+                datePickerDialog.setTitle(null);
                 datePickerDialog.show();
             }
         });
@@ -321,7 +321,7 @@ public class MainActivity extends AppCompatActivity {
                             setNormalButtonClickable(confimButton, true);
                         }
                     }
-                }, currentTime.get(Calendar.HOUR_OF_DAY), currentTime.get(Calendar.MINUTE), false);
+                }, currentTime.get(Calendar.HOUR_OF_DAY), currentTime.get(Calendar.MINUTE), true);
                 timePickerDialog.show();
             }
         });
