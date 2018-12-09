@@ -44,6 +44,7 @@ public class MainActivity extends AppCompatActivity {
     String NEW_TIPS = "NEWT";
 
     Calendar calendar;
+    CircleTip circleTip;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -126,9 +127,68 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
                 createAfterNotice(tip, TimesMills[i]);
+                pushNotification(tip);
                 dialogInterface.dismiss();
                 dialogInterfaceOut.dismiss();
                 finish();
+            }
+        }).create().show();
+    }
+
+    //循环间隔选择
+    private void CircleTimeDialog(final AppCompatTextView circleTimeText, final AppCompatTextView timesText,
+                                  final AppCompatTextView hourText, final AppCompatTextView dayText,
+                                  final MaterialButton confirmButton){
+        final String[] Times = new String[]{
+                "5分钟", "15分钟", "30分钟", "1小时", "2小时", "4小时", "12小时", "1天"
+        };
+        final long[] TimesMills = new long[]{
+                5*60*1000, 15*60*1000, 30*60*1000, 60*60*1000, 120*60*1000, 240*60*1000, 720*60*1000, 1440*60*1000
+        };
+        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+        builder.setCancelable(true).setTitle("超时后循环提醒时间").setSingleChoiceItems(Times, 0, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                circleTip.setSpaceTime(TimesMills[i]);
+                ((AppCompatTextView)findViewById(R.id.text_circleTime)).setText(Times[i]);
+                dialogInterface.dismiss();
+                if(!circleTimeText.getText().toString().equals(getString(R.string.unsetting)) &&
+                        !timesText.getText().toString().equals(getString(R.string.unsetting)) &&
+                        !hourText.getText().toString().equals(getString(R.string.unsetting)) &&
+                        !dayText.getText().toString().equals(getString(R.string.unsetting))){
+                    setNormalButtonClickable(confirmButton, true);
+                }else{
+                    setNormalButtonClickable(confirmButton, false);
+                }
+            }
+        }).create().show();
+    }
+
+    //循环次数选择
+    private void TimesDialog(final AppCompatTextView circleTimeText, final AppCompatTextView timesText,
+                             final AppCompatTextView hourText, final AppCompatTextView dayText,
+                             final MaterialButton confirmButton){
+        final String[] Times = new String[]{
+                "1", "3", "5", "10", "15", "20"
+        };
+        final int[] TimesValues = new int[]{
+                1, 3, 5, 10, 15, 20
+        };
+        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+        builder.setCancelable(true).setTitle("超时后循环提醒次数").setSingleChoiceItems(Times, 0, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                circleTip.setTimes(TimesValues[i]);
+                ((AppCompatTextView)findViewById(R.id.text_times)).setText(Times[i]+'次');
+                dialogInterface.dismiss();
+                if(!circleTimeText.getText().toString().equals(getString(R.string.unsetting)) &&
+                        !timesText.getText().toString().equals(getString(R.string.unsetting)) &&
+                        !hourText.getText().toString().equals(getString(R.string.unsetting)) &&
+                        !dayText.getText().toString().equals(getString(R.string.unsetting))){
+                    setNormalButtonClickable(confirmButton, true);
+                }else{
+                    setNormalButtonClickable(confirmButton, false);
+                }
             }
         }).create().show();
     }
@@ -161,7 +221,18 @@ public class MainActivity extends AppCompatActivity {
     }
 
     //推送Notification
-    private void pushNotification(int channel_id, long sql_id ,String Title, String Context, long Time){
+    private void pushNotification(Tip dataTip){
+        int channel_id = dataTip.getChannel_id();
+        long sql_id = dataTip.getId();
+        String Title = dataTip.getTitle();
+        String Context = dataTip.getContext();
+        long Time = dataTip.getTime();
+        long TargetTime;
+        try{
+            TargetTime = dataTip.getTargetTime();
+        }catch (Exception e){
+            TargetTime = 0;
+        }
         //初始化通知对象
         Notification notification;
         NotificationCompat.Builder builder;
@@ -184,7 +255,14 @@ public class MainActivity extends AppCompatActivity {
             Context = "无详情";
         builder.setContentText(Context);
         builder.setSmallIcon(R.drawable.ic_add_withe_24dp);
-        builder.setWhen(Time);
+        builder.setVisibility(Notification.VISIBILITY_PUBLIC);
+        if(TargetTime == 0 || TargetTime <= System.currentTimeMillis()){
+            builder.setWhen(Time);
+            builder.setUsesChronometer(false);
+        }else{
+            builder.setWhen(TargetTime);
+            builder.setUsesChronometer(true);
+        }
 
         //设置完成按钮动作
         Intent intent1 = new Intent(getApplicationContext(), MainActivity.class);
@@ -222,13 +300,13 @@ public class MainActivity extends AppCompatActivity {
         for (int i = 0; i < tips.size(); i++){
             Tip tip = tips.get(i);
 
-            long sql_id = tip.getId();
-            int channel_id = tip.getChannel_id();
-            String Title = tip.getTitle();
-            String Context = tip.getContext();
-            long Time = tip.getTime();
+//            long sql_id = tip.getId();
+//            int channel_id = tip.getChannel_id();
+//            String Title = tip.getTitle();
+//            String Context = tip.getContext();
+//            long TargetTime = tip.getTargetTime();
 
-            pushNotification(channel_id, sql_id, Title, Context, Time);
+            pushNotification(tip);
 
             finish();
         }
@@ -247,7 +325,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     //初始化提醒
-    //TODO:Switch
     private void initNoticeSwitch(){
         calendar = Calendar.getInstance();
         final MaterialButton confimButton = (MaterialButton)findViewById(R.id.confirm_button);
@@ -255,6 +332,8 @@ public class MainActivity extends AppCompatActivity {
         //显示时间信息的控件
         final AppCompatTextView dayText = (AppCompatTextView)findViewById(R.id.text_day);
         final AppCompatTextView hourText = (AppCompatTextView)findViewById(R.id.text_hour);
+        final AppCompatTextView circleTimeText = (AppCompatTextView)findViewById(R.id.text_circleTime);
+        final AppCompatTextView timesText = (AppCompatTextView)findViewById(R.id.text_times);
 
         //开关显示界面相关
         SwitchCompat switchCompat = (SwitchCompat)findViewById(R.id.notice_switch);
@@ -269,8 +348,10 @@ public class MainActivity extends AppCompatActivity {
                     materialCardView.setVisibility(View.GONE);
                 }
                 //开启提醒后必须设置完成才能点确定按钮
-                if ((dayText.getText().toString().equals(getString(R.string.unsetting)) ||
-                        hourText.getText().toString().equals(getString(R.string.unsetting))) &&
+                if (((dayText.getText().toString().equals(getString(R.string.unsetting)) ||
+                        hourText.getText().toString().equals(getString(R.string.unsetting))) ||
+                        circleTimeText.getText().toString().equals(getString(R.string.unsetting)) ^
+                        timesText.getText().toString().equals(getString(R.string.unsetting))) &&
                         switchCompat1.isChecked()){
                     setNormalButtonClickable(confimButton, false);
                 }else{
@@ -282,6 +363,8 @@ public class MainActivity extends AppCompatActivity {
         //设置按钮设置时间相关
         MaterialButton dayButton = (MaterialButton)findViewById(R.id.button_day);
         MaterialButton hourButton = (MaterialButton)findViewById(R.id.button_hour);
+        MaterialButton circleTimeButton = (MaterialButton)findViewById(R.id.button_circleTime);
+        MaterialButton timesButton = (MaterialButton)findViewById(R.id.button_times);
 
         dayButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -295,7 +378,17 @@ public class MainActivity extends AppCompatActivity {
                         calendar.set(Calendar.DAY_OF_MONTH, i2);
                         dayText.setText("" + calendar.get(Calendar.YEAR) + '年' + (calendar.get(Calendar.MONTH) + 1) + '月' + calendar.get(Calendar.DAY_OF_MONTH) + '日');
                         if (!hourText.getText().toString().equals(getString(R.string.unsetting))){
-                            setNormalButtonClickable(confimButton, true);
+                            if(!circleTimeText.getText().equals(getString(R.string.unsetting)) &&
+                                    !timesText.getText().equals(getString(R.string.unsetting))){
+                                setNormalButtonClickable(confimButton, true);
+                            }
+                            else if(circleTimeText.getText().equals(getString(R.string.unsetting)) &&
+                                    timesText.getText().equals(getString(R.string.unsetting))){
+                                setNormalButtonClickable(confimButton, true);
+                            }
+                            else{
+                                setNormalButtonClickable(confimButton, false);
+                            }
                         }
                     }
                 }, currentTime.get(Calendar.YEAR), currentTime.get(Calendar.MONTH),  currentTime.get(Calendar.DAY_OF_MONTH));
@@ -318,11 +411,35 @@ public class MainActivity extends AppCompatActivity {
                         calendar.set(Calendar.MINUTE, i1);
                         hourText.setText("" + calendar.get(Calendar.HOUR_OF_DAY) + '点' + calendar.get(Calendar.MINUTE) + '分');
                         if (!dayText.getText().toString().equals(getString(R.string.unsetting))){
-                            setNormalButtonClickable(confimButton, true);
+                            if(!circleTimeText.getText().equals(getString(R.string.unsetting)) &&
+                                    !timesText.getText().equals(getString(R.string.unsetting))){
+                                setNormalButtonClickable(confimButton, true);
+                            }
+                            else if(circleTimeText.getText().equals(getString(R.string.unsetting)) &&
+                                    timesText.getText().equals(getString(R.string.unsetting))){
+                                setNormalButtonClickable(confimButton, true);
+                            }
+                            else{
+                                setNormalButtonClickable(confimButton, false);
+                            }
                         }
                     }
                 }, currentTime.get(Calendar.HOUR_OF_DAY), currentTime.get(Calendar.MINUTE), true);
                 timePickerDialog.show();
+            }
+        });
+
+        circleTimeButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                CircleTimeDialog(circleTimeText, timesText, dayText, hourText, confimButton);
+            }
+        });
+
+        timesButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                TimesDialog(circleTimeText, timesText, dayText, hourText, confimButton);
             }
         });
     }
@@ -339,6 +456,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     //开始fab动画
+    //TODO: Animation
     private void startAnimation(View view) {
         Animation animation = new ScaleAnimation(1, 10, 1, 10, Animation.RELATIVE_TO_SELF,0.5f,Animation.RELATIVE_TO_SELF,0.5f);
         animation.setDuration(200);
@@ -387,6 +505,7 @@ public class MainActivity extends AppCompatActivity {
         if(intent.getStringExtra(NEW_TIPS) != null){
             CancelButton.setVisibility(View.GONE);
             fab.setVisibility(View.GONE);
+            circleTip = new CircleTip();
             ACTION = CREATE;
         }
         //来自已有
@@ -403,6 +522,7 @@ public class MainActivity extends AppCompatActivity {
             ACTION = CREATE;
             if("text/plain".equals(getIntent().getType())){
                 initText(intent.getStringExtra(Intent.EXTRA_TITLE), intent.getStringExtra(Intent.EXTRA_TEXT));
+                circleTip = new CircleTip();
             }
             else{
                 Toast.makeText(this, "不支持的分享类型", Toast.LENGTH_SHORT).show();
@@ -413,6 +533,7 @@ public class MainActivity extends AppCompatActivity {
         else{
             CancelButton.setVisibility(View.GONE);
             fab.setVisibility(View.GONE);
+            circleTip = new CircleTip();
             ACTION = CREATE;
         }
 
@@ -458,6 +579,13 @@ public class MainActivity extends AppCompatActivity {
         Tip temp = LitePal.find(Tip.class, id);
         AppCompatTextView dayText = (AppCompatTextView)findViewById(R.id.text_day);
         AppCompatTextView hourText = (AppCompatTextView)findViewById(R.id.text_hour);
+        AppCompatTextView circleTimeText = (AppCompatTextView)findViewById(R.id.text_circleTime);
+        AppCompatTextView timesText = (AppCompatTextView)findViewById(R.id.text_times);
+        try{
+            circleTip = LitePal.where("TipId = ?", String.valueOf(id)).find(CircleTip.class).get(0);
+        }catch (Exception e){
+            circleTip = new CircleTip();
+        }
         if (temp.getHasNotice() == 1){
             findViewById(R.id.notice_card).setVisibility(View.VISIBLE);
             ((SwitchCompat)findViewById(R.id.notice_switch)).setChecked(true);
@@ -469,6 +597,16 @@ public class MainActivity extends AppCompatActivity {
             hourText.setText("" +
                     calendar.get(Calendar.HOUR_OF_DAY) + '点' +
                     calendar.get(Calendar.MINUTE) + '分');
+            if(circleTip.getSpaceTime()/1000/60/59 > 0){
+                if(circleTip.getSpaceTime()/1000/60/60 > 12){
+                    circleTimeText.setText(circleTip.getSpaceTime()/1000/60/60/24 + "天");
+                }else{
+                    circleTimeText.setText(circleTip.getSpaceTime()/1000/60/60 + "小时");
+                }
+            }else{
+                circleTimeText.setText(circleTip.getSpaceTime()/1000/60 + "分钟");
+            }
+            timesText.setText(circleTip.getTimes() + "次");
         }
     }
 
@@ -506,17 +644,16 @@ public class MainActivity extends AppCompatActivity {
         if (((SwitchCompat)findViewById(R.id.notice_switch)).isChecked()){
             tip.setHasNotice(1);
             tip.setTargetTime(calendar.getTimeInMillis());
+            tip.save();
             createOrDeleteDNotice(tip, true);
+            createOrDeleteCircleNotice(tip, true);
         }else{
             tip.setHasNotice(2);
             createOrDeleteDNotice(tip, false);
+            tip.save();
+            createOrDeleteCircleNotice(tip, false);
         }
-        tip.save();
-
-        long sql_id = tip.getId();
-        long Time = tip.getTime();
-
-        pushNotification(channel_id, sql_id, Title, Context, Time);
+        pushNotification(tip);
 
         finish();
     }
@@ -525,8 +662,6 @@ public class MainActivity extends AppCompatActivity {
     private void updateTip(long sql_id){
         List<Tip> tips = LitePal.where("id = ?", String.valueOf(sql_id)).find(Tip.class);
         Tip tip = tips.get(0);
-        int channel_id = tip.getChannel_id();
-        long Time = tip.getTime();
 
         TextInputEditText Title_edit = (TextInputEditText)findViewById(R.id.title);
         TextInputEditText Context_edit = (TextInputEditText)findViewById(R.id.context);
@@ -545,13 +680,15 @@ public class MainActivity extends AppCompatActivity {
             tip.setHasNotice(1);
             tip.setTargetTime(calendar.getTimeInMillis());
             createOrDeleteDNotice(tip, true);
+            createOrDeleteCircleNotice(tip, true);
         }else{
             tip.setHasNotice(2);
             createOrDeleteDNotice(tip, false);
+            createOrDeleteCircleNotice(tip, false);
         }
         tip.updateAll("id = ?", String.valueOf(tip.getId()));
 
-        pushNotification(channel_id, sql_id, Title, Context, Time);
+        pushNotification(tip);
 
         finish();
     }
@@ -561,6 +698,7 @@ public class MainActivity extends AppCompatActivity {
         NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
         notificationManager.cancel(id);
         createOrDeleteDNotice(LitePal.find(Tip.class, sql_id), false);
+        createOrDeleteCircleNotice(LitePal.find(Tip.class, sql_id), false);
         LitePal.delete(Tip.class, sql_id);
         Log.d("NoraHito", "deleteNotice: " + id + "     " + sql_id);
         finish();
@@ -578,6 +716,43 @@ public class MainActivity extends AppCompatActivity {
             alarmManager.setExact(AlarmManager.RTC_WAKEUP, tip.getTargetTime(), pendingIntent);
         }else{
             alarmManager.cancel(pendingIntent);
+        }
+    }
+
+    //循环提醒数据存储与设置
+    private void createOrDeleteCircleNotice(Tip tip, boolean create){
+        if (create){
+            Tip temp = LitePal.where("channel_id = ?", String.valueOf(tip.getChannel_id())).find(Tip.class).get(0);
+            circleTip.setTipId(temp.getId());
+            StringBuilder stringBuilder = new StringBuilder();
+            for (int i = 1; i <= circleTip.getTimes(); i++){
+                stringBuilder.append(tip.getChannel_id()*100+i + ":");
+                AlarmManager alarmManager = (AlarmManager)getSystemService(Service.ALARM_SERVICE);
+                Intent intent = new Intent(this, MainActivity.class);
+                intent.putExtra("ACTION_NOTICE", "ACTION_NOTICE");
+                intent.putExtra("Tip", tip.getChannel_id());
+                PendingIntent pendingIntent = PendingIntent.getActivity(this,
+                        tip.getChannel_id()*100+i, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+                alarmManager.setExact(AlarmManager.RTC_WAKEUP, tip.getTargetTime()+i*circleTip.getSpaceTime(), pendingIntent);
+            }
+            circleTip.setRequests(stringBuilder.toString());
+            circleTip.save();
+        }else{
+            try{
+                circleTip = LitePal.where("TipId = ?", String.valueOf(tip.getId())).find(CircleTip.class).get(0);
+                for (int i = 1; i <= circleTip.getTimes(); i++){
+                    AlarmManager alarmManager = (AlarmManager)getSystemService(Service.ALARM_SERVICE);
+                    Intent intent = new Intent(this, MainActivity.class);
+                    intent.putExtra("ACTION_NOTICE", "ACTION_NOTICE");
+                    intent.putExtra("Tip", tip.getChannel_id());
+                    PendingIntent pendingIntent = PendingIntent.getActivity(this,
+                            tip.getChannel_id()*100+i, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+                    alarmManager.cancel(pendingIntent);
+                }
+                circleTip.delete();
+            }catch (Exception e){
+                Log.d(TAG, "createOrDeleteCircleNotice: " + e);
+            }
         }
     }
 

@@ -192,7 +192,8 @@
                 android:layout_height="wrap_content"
                 style="@style/Widget.MaterialComponents.Button.TextButton.Dialog"
                 android:layout_alignParentEnd="true"
-                android:text="@string/setting" />
+                android:text="@string/setting"
+                app:cornerRadius="18dp"/>
             <View
                 android:id="@+id/line1"
                 android:layout_width="match_parent"
@@ -225,7 +226,76 @@
                 style="@style/Widget.MaterialComponents.Button.TextButton.Dialog"
                 android:layout_alignRight="@+id/button_day"
                 android:layout_below="@id/line1"
-                android:text="@string/setting" />
+                android:text="@string/setting"
+                app:cornerRadius="18dp"/>
+            <View
+                android:id="@+id/line2"
+                android:layout_width="match_parent"
+                android:layout_height="0.5dp"
+                android:layout_marginLeft="8dp"
+                android:layout_marginRight="8dp"
+                android:layout_below="@+id/button_hour"
+                android:background="@android:color/darker_gray"/>
+            <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/which_circleTime"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="8dp"
+                android:layout_alignBaseline="@+id/button_circleTime"
+                android:text="@string/which_circleTime"/>
+            <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/text_circleTime"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="8dp"
+                android:layout_alignBaseline="@+id/button_circleTime"
+                android:layout_centerHorizontal="true"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:text="@string/unsetting"/>
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/button_circleTime"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                style="@style/Widget.MaterialComponents.Button.TextButton.Dialog"
+                android:layout_alignRight="@+id/button_hour"
+                android:layout_below="@id/line2"
+                android:text="@string/setting"
+                app:cornerRadius="18dp"/>
+            <View
+                android:id="@+id/line3"
+                android:layout_width="match_parent"
+                android:layout_height="0.5dp"
+                android:layout_marginLeft="8dp"
+                android:layout_marginRight="8dp"
+                android:layout_below="@+id/button_circleTime"
+                android:background="@android:color/darker_gray"/>
+            <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/which_times"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="8dp"
+                android:layout_alignBaseline="@+id/button_times"
+                android:text="@string/which_times"/>
+            <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/text_times"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="8dp"
+                android:layout_alignBaseline="@+id/button_times"
+                android:layout_centerHorizontal="true"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:text="@string/unsetting"/>
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/button_times"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                style="@style/Widget.MaterialComponents.Button.TextButton.Dialog"
+                android:layout_alignRight="@+id/button_circleTime"
+                android:layout_below="@id/line3"
+                android:text="@string/setting"
+                app:cornerRadius="18dp"/>
         </RelativeLayout>
     </com.google.android.material.card.MaterialCardView>
 

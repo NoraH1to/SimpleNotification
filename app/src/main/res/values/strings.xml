@@ -11,4 +11,8 @@
     <string name="which_hour">哪时</string>
     <string name="setting">设置</string>
     <string name="unsetting">未设置</string>
+    <string name="appwidget_text">EXAMPLE</string>
+    <string name="add_widget">Add widget</string>
+    <string name="which_circleTime">循环间隔</string>
+    <string name="which_times">循环次数</string>
 </resources>
