@@ -1,5 +1,7 @@
 package sterbenj.com.simplenotification;
 
+import android.Manifest;
+import android.annotation.TargetApi;
 import android.app.AlarmManager;
 import android.app.DatePickerDialog;
 import android.app.Notification;
@@ -10,13 +12,21 @@ import android.app.Service;
 import android.app.TimePickerDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.media.Ringtone;
+import android.media.RingtoneManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.ScaleAnimation;
 import android.widget.DatePicker;
+import android.widget.NumberPicker;
 import android.widget.TimePicker;
 import android.widget.Toast;
 
@@ -30,6 +40,7 @@ import org.litepal.tablemanager.callback.DatabaseListener;
 import java.util.Calendar;
 import java.util.List;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.AppCompatButton;
@@ -42,6 +53,12 @@ public class MainActivity extends AppCompatActivity {
     String TAG = "NoraHito";
     String OLD_TIPS = "OLDT";
     String NEW_TIPS = "NEWT";
+
+    long day_picker_value = 0;
+    long hour_picker_value = 0;
+    long min_picker_value = 0;
+    int times_picker_value = 1;
+    long def_spaceTime = 5*60*1000;
 
     Calendar calendar;
     CircleTip circleTip;
@@ -66,11 +83,20 @@ public class MainActivity extends AppCompatActivity {
 
         //来自提醒操作
         if(getIntent().getStringExtra("ACTION_NOTICE") != null){
+            //息屏显示
+            final Window win = getWindow();
+            win.addFlags(WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED
+                    | WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD
+                    | WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
+                    | WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON);
+
             NoticeDialog(getIntent().getIntExtra("Tip", -1));
             return;
         }
 
         setContentView(R.layout.activity_main);
+
+        ((TextInputEditText)(findViewById(R.id.title))).requestFocus();
 
         initNoticeSwitch();
         initButton();
@@ -79,8 +105,26 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        switch (requestCode){
+            case 1:
+                if(grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED){
+
+                }else{
+                    Toast.makeText(this, "没有该权限息屏提醒会失效哦！", Toast.LENGTH_SHORT).show();
+                }
+        }
+    }
+
     //提醒dialog
     private void NoticeDialog(int channel_id){
+
+        //闹钟铃声play
+        Uri notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM);
+        final Ringtone ringtone = RingtoneManager.getRingtone(getApplicationContext(), notification);
+        ringtone.play();
+
         Log.d(TAG, "NoticeDialog: " + channel_id);
         final Tip tip_temp = LitePal.where("channel_id = ?", String.valueOf(channel_id)).find(Tip.class).get(0);
         String title = tip_temp.getTitle();
@@ -94,18 +138,21 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
                 dialogInterface.dismiss();
+                ringtone.stop();
                 finish();
             }
         });
         dialog.setButton(DialogInterface.BUTTON_NEUTRAL, "稍后提醒", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
+                ringtone.stop();
                 AfterTimeDialog(tip_temp, dialogInterface);
             }
         });
         dialog.setButton(DialogInterface.BUTTON_NEGATIVE, "删除提醒", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
+                ringtone.stop();
                 deleteTip(tip_temp.getChannel_id(), tip_temp.getId());
                 dialogInterface.dismiss();
                 finish();
@@ -135,52 +182,98 @@ public class MainActivity extends AppCompatActivity {
         }).create().show();
     }
 
-    //循环间隔选择
     private void CircleTimeDialog(final AppCompatTextView circleTimeText, final AppCompatTextView timesText,
-                                  final AppCompatTextView hourText, final AppCompatTextView dayText,
-                                  final MaterialButton confirmButton){
-        final String[] Times = new String[]{
-                "5分钟", "15分钟", "30分钟", "1小时", "2小时", "4小时", "12小时", "1天"
-        };
-        final long[] TimesMills = new long[]{
-                5*60*1000, 15*60*1000, 30*60*1000, 60*60*1000, 120*60*1000, 240*60*1000, 720*60*1000, 1440*60*1000
-        };
-        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-        builder.setCancelable(true).setTitle("超时后循环提醒时间").setSingleChoiceItems(Times, 0, new DialogInterface.OnClickListener() {
+                                      final AppCompatTextView hourText, final AppCompatTextView dayText,
+                                      final MaterialButton confirmButton){
+        AlertDialog dialog= new AlertDialog.Builder(MainActivity.this).create();
+        dialog.setTitle("超时后循环提醒时间");
+        View view1 = LayoutInflater.from(MainActivity.this)
+                .inflate(R.layout.number_picker_circle_time, null);
+        //初始化picker
+        initDatePicker(view1);
+        dialog.setView(view1);
+        dialog.setButton(DialogInterface.BUTTON_POSITIVE, "确定", new DialogInterface.OnClickListener(){
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
-                circleTip.setSpaceTime(TimesMills[i]);
-                ((AppCompatTextView)findViewById(R.id.text_circleTime)).setText(Times[i]);
-                dialogInterface.dismiss();
-                if(!circleTimeText.getText().toString().equals(getString(R.string.unsetting)) &&
-                        !timesText.getText().toString().equals(getString(R.string.unsetting)) &&
-                        !hourText.getText().toString().equals(getString(R.string.unsetting)) &&
-                        !dayText.getText().toString().equals(getString(R.string.unsetting))){
-                    setNormalButtonClickable(confirmButton, true);
-                }else{
-                    setNormalButtonClickable(confirmButton, false);
+
+                Calendar tempCal = Calendar.getInstance();
+
+                //三个数据不能都为0
+                if (day_picker_value == 0 && hour_picker_value == 0 && min_picker_value == 0){
+
+                    Toast.makeText(MainActivity.this, "间隔为0，设为默认值", Toast.LENGTH_SHORT).show();
+                    circleTip.setSpaceTime(def_spaceTime);
+                    circleTimeText.setText("5 分");
+                    if(!circleTimeText.getText().toString().equals(getString(R.string.unsetting)) &&
+                            !timesText.getText().toString().equals(getString(R.string.unsetting)) &&
+                            !hourText.getText().toString().equals(getString(R.string.unsetting)) &&
+                            !dayText.getText().toString().equals(getString(R.string.unsetting))){
+                        setNormalButtonClickable(confirmButton, true);
+                    }else{
+                        setNormalButtonClickable(confirmButton, false);
+                    }
                 }
+                else{
+                    //设置换算spacetime
+                    circleTip.setSpaceTime(
+                            day_picker_value*1000*60*60*24 +
+                            hour_picker_value*1000*60*60 +
+                            min_picker_value*1000*60);
+                    //处理显示字符串
+                    StringBuilder stringBuilder = new StringBuilder();
+                    if(day_picker_value != 0){
+                        stringBuilder.append(day_picker_value+" 天 ");
+                    }
+                    if(hour_picker_value != 0){
+                        stringBuilder.append(hour_picker_value+" 时 ");
+                    }
+                    if(min_picker_value != 0){
+                        stringBuilder.append(min_picker_value+" 分");
+                    }
+                    ((AppCompatTextView)findViewById(R.id.text_circleTime)).setText(stringBuilder);
+                    if(!circleTimeText.getText().toString().equals(getString(R.string.unsetting)) &&
+                            !timesText.getText().toString().equals(getString(R.string.unsetting)) &&
+                            !hourText.getText().toString().equals(getString(R.string.unsetting)) &&
+                            !dayText.getText().toString().equals(getString(R.string.unsetting))){
+                        setNormalButtonClickable(confirmButton, true);
+                    }else{
+                        setNormalButtonClickable(confirmButton, false);
+                    }
+                }
+
+                //还原value
+                day_picker_value = 0;
+                hour_picker_value = 0;
+                min_picker_value = 0;
             }
-        }).create().show();
+        });
+        dialog.setButton(DialogInterface.BUTTON_NEGATIVE, "取消", new DialogInterface.OnClickListener(){
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                //还原value
+                day_picker_value = 0;
+                hour_picker_value = 0;
+                min_picker_value = 0;
+            }
+        });
+        dialog.show();
     }
 
     //循环次数选择
     private void TimesDialog(final AppCompatTextView circleTimeText, final AppCompatTextView timesText,
-                             final AppCompatTextView hourText, final AppCompatTextView dayText,
-                             final MaterialButton confirmButton){
-        final String[] Times = new String[]{
-                "1", "3", "5", "10", "15", "20"
-        };
-        final int[] TimesValues = new int[]{
-                1, 3, 5, 10, 15, 20
-        };
-        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-        builder.setCancelable(true).setTitle("超时后循环提醒次数").setSingleChoiceItems(Times, 0, new DialogInterface.OnClickListener() {
+                                 final AppCompatTextView hourText, final AppCompatTextView dayText,
+                                 final MaterialButton confirmButton){
+        AlertDialog dialog= new AlertDialog.Builder(MainActivity.this).create();
+        dialog.setTitle("超时后循环提醒次数");
+        View view1 = LayoutInflater.from(MainActivity.this)
+                .inflate(R.layout.number_picker_times, null);
+        initTimesPicker(view1);
+        dialog.setView(view1);
+        dialog.setButton(DialogInterface.BUTTON_POSITIVE, "确定", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
-                circleTip.setTimes(TimesValues[i]);
-                ((AppCompatTextView)findViewById(R.id.text_times)).setText(Times[i]+'次');
-                dialogInterface.dismiss();
+                circleTip.setTimes(times_picker_value);
+                ((AppCompatTextView)findViewById(R.id.text_times)).setText(times_picker_value+" 次 ");
                 if(!circleTimeText.getText().toString().equals(getString(R.string.unsetting)) &&
                         !timesText.getText().toString().equals(getString(R.string.unsetting)) &&
                         !hourText.getText().toString().equals(getString(R.string.unsetting)) &&
@@ -189,8 +282,19 @@ public class MainActivity extends AppCompatActivity {
                 }else{
                     setNormalButtonClickable(confirmButton, false);
                 }
+
+                //还原value
+                times_picker_value = 1;
             }
-        }).create().show();
+        });
+        dialog.setButton(DialogInterface.BUTTON_NEGATIVE, "取消", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                //还原value
+                times_picker_value = 0;
+            }
+        });
+        dialog.show();
     }
 
     //稍后提醒建立
@@ -299,15 +403,7 @@ public class MainActivity extends AppCompatActivity {
         }
         for (int i = 0; i < tips.size(); i++){
             Tip tip = tips.get(i);
-
-//            long sql_id = tip.getId();
-//            int channel_id = tip.getChannel_id();
-//            String Title = tip.getTitle();
-//            String Context = tip.getContext();
-//            long TargetTime = tip.getTargetTime();
-
             pushNotification(tip);
-
             finish();
         }
     }
@@ -440,6 +536,53 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 TimesDialog(circleTimeText, timesText, dayText, hourText, confimButton);
+            }
+        });
+    }
+
+    //初始化次数picker
+    private void initTimesPicker(View view){
+        NumberPicker timesPicker = view.findViewById(R.id.times_picker);
+        timesPicker.setMinValue(1);
+        timesPicker.setMaxValue(30);
+        timesPicker.setOnValueChangedListener(new NumberPicker.OnValueChangeListener() {
+            @Override
+            public void onValueChange(NumberPicker numberPicker, int i, int i1) {
+                times_picker_value = i1;
+            }
+        });
+    }
+
+    //初始化日期picker
+    private void initDatePicker(View view){
+        NumberPicker dayPicker = view.findViewById(R.id.circleTime_picker_day);
+        NumberPicker hourPicker = view.findViewById(R.id.circleTime_picker_hour);
+        NumberPicker minPicker = view.findViewById(R.id.circleTime_picker_minute);
+
+        dayPicker.setMinValue(0);
+        hourPicker.setMinValue(0);
+        minPicker.setMinValue(0);
+
+        dayPicker.setMaxValue(30);
+        hourPicker.setMaxValue(23);
+        minPicker.setMaxValue(59);
+
+        dayPicker.setOnValueChangedListener(new NumberPicker.OnValueChangeListener() {
+            @Override
+            public void onValueChange(NumberPicker numberPicker, int i, int i1) {
+                day_picker_value = i1;
+            }
+        });
+        hourPicker.setOnValueChangedListener(new NumberPicker.OnValueChangeListener() {
+            @Override
+            public void onValueChange(NumberPicker numberPicker, int i, int i1) {
+                hour_picker_value = i1;
+            }
+        });
+        minPicker.setOnValueChangedListener(new NumberPicker.OnValueChangeListener() {
+            @Override
+            public void onValueChange(NumberPicker numberPicker, int i, int i1) {
+                min_picker_value = i1;
             }
         });
     }
@@ -589,24 +732,36 @@ public class MainActivity extends AppCompatActivity {
         if (temp.getHasNotice() == 1){
             findViewById(R.id.notice_card).setVisibility(View.VISIBLE);
             ((SwitchCompat)findViewById(R.id.notice_switch)).setChecked(true);
+            //换算年月日显示
             calendar.setTimeInMillis(temp.getTargetTime());
             dayText.setText("" +
-                    calendar.get(Calendar.YEAR) + '年' +
-                    (calendar.get(Calendar.MONTH) + 1) + '月' +
-                    calendar.get(Calendar.DAY_OF_MONTH) + '日');
+                    calendar.get(Calendar.YEAR) + " 年 " +
+                    (calendar.get(Calendar.MONTH) + 1) + " 月 " +
+                    calendar.get(Calendar.DAY_OF_MONTH) + " 日 ");
             hourText.setText("" +
-                    calendar.get(Calendar.HOUR_OF_DAY) + '点' +
-                    calendar.get(Calendar.MINUTE) + '分');
-            if(circleTip.getSpaceTime()/1000/60/59 > 0){
-                if(circleTip.getSpaceTime()/1000/60/60 > 12){
-                    circleTimeText.setText(circleTip.getSpaceTime()/1000/60/60/24 + "天");
-                }else{
-                    circleTimeText.setText(circleTip.getSpaceTime()/1000/60/60 + "小时");
-                }
-            }else{
-                circleTimeText.setText(circleTip.getSpaceTime()/1000/60 + "分钟");
+                    calendar.get(Calendar.HOUR_OF_DAY) + " 点 " +
+                    calendar.get(Calendar.MINUTE) + " 分");
+            //换算间隔时间并显示
+            StringBuilder stringBuilder = new StringBuilder();
+            long temp_spaceTime = circleTip.getSpaceTime();
+            if (temp_spaceTime/1000/60/60/24 >= 1){
+                stringBuilder.append(temp_spaceTime/1000/60/60/24 + " 天 ");
+                temp_spaceTime -= (temp_spaceTime/1000/60/60/24)*(1000*60*60*24);
+                Log.d(TAG, "initNoticeLayout: " + temp_spaceTime);
             }
-            timesText.setText(circleTip.getTimes() + "次");
+            if (temp_spaceTime/1000/60/60 >= 1){
+                stringBuilder.append(temp_spaceTime/1000/60/60 + " 时 ");
+                temp_spaceTime -= (temp_spaceTime/1000/60/60)*(1000*60*60);
+                Log.d(TAG, "initNoticeLayout: " + temp_spaceTime);
+            }
+            if (temp_spaceTime/1000/60 >= 1){
+                stringBuilder.append(temp_spaceTime/1000/60 + " 分 ");
+                temp_spaceTime -= (temp_spaceTime/1000/60)*(1000*60);
+                Log.d(TAG, "initNoticeLayout: " + temp_spaceTime);
+            }
+            circleTimeText.setText(stringBuilder);
+            //次数
+            timesText.setText(circleTip.getTimes() + " 次 ");
         }
     }
 

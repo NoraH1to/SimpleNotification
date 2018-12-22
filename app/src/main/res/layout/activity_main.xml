@@ -35,6 +35,24 @@
             android:layout_height="wrap_content"
             android:layout_toEndOf="@+id/notice_text"
             android:layout_centerVertical="true"/>
+        <androidx.appcompat.widget.AppCompatTextView
+            android:id="@+id/circle_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="8dp"
+            android:text="@string/circle"
+            android:textSize="16sp"
+            android:layout_toRightOf="@id/notice_switch"
+            android:layout_centerVertical="true"
+            android:visibility="gone"/>
+        <androidx.appcompat.widget.AppCompatCheckBox
+            android:id="@+id/circle_checkbox"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_toEndOf="@+id/circle_text"
+            android:layout_centerVertical="true"
+            android:visibility="gone"/>
     </RelativeLayout>
 
     <com.google.android.material.textfield.TextInputLayout
@@ -55,7 +73,10 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:singleLine="true"
-            android:hint="@string/notice_title"/>
+            android:hint="@string/notice_title"
+            android:selectAllOnFocus="true"
+            android:focusable="true"
+            android:focusableInTouchMode="true"/>
     </com.google.android.material.textfield.TextInputLayout>
 
     <com.google.android.material.textfield.TextInputLayout
@@ -75,7 +96,10 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:singleLine="true"
-            android:hint="@string/notice_context"/>
+            android:hint="@string/notice_context"
+            android:selectAllOnFocus="true"
+            android:focusable="true"
+            android:focusableInTouchMode="true"/>
     </com.google.android.material.textfield.TextInputLayout>
 
     <RelativeLayout

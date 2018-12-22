@@ -15,4 +15,9 @@
     <string name="add_widget">Add widget</string>
     <string name="which_circleTime">循环间隔</string>
     <string name="which_times">循环次数</string>
+    <string name="day">天</string>
+    <string name="hour">小时</string>
+    <string name="minute">分钟</string>
+    <string name="times">次</string>
+    <string name="circle">循环</string>
 </resources>
